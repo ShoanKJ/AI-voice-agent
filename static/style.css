@@ -1,0 +1,91 @@
+/* Reset + Base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body, html {
+  height: 100%;
+  font-family: 'Poppins', sans-serif;
+  background: black;
+  color: white;
+  overflow-x: hidden;
+}
+section {
+  min-height: 100vh;
+  padding: 100px 20px 60px;
+  text-align: center;
+}
+
+/* Navbar */
+nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  padding: 1rem 2rem;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+nav a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s;
+}
+nav a:hover {
+  color: #0ff;
+}
+
+/* Buttons and Inputs */
+input, button {
+  padding: 10px 20px;
+  margin: 10px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: none;
+  outline: none;
+}
+button {
+  background-color: #0ff;
+  color: black;
+  cursor: pointer;
+  font-weight: bold;
+}
+button:disabled {
+  background-color: #666;
+  cursor: not-allowed;
+}
+
+/* Particle Orb */
+.wrap {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  animation: rotate 14s infinite linear;
+  z-index: 0;
+}
+@keyframes rotate {
+  100% {
+    transform: rotateY(360deg) rotateX(360deg);
+  }
+}
+.c {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  opacity: 0;
+  animation: fadeInOut 14s infinite;
+}
+@keyframes fadeInOut {
+  0%, 20% { opacity: 0; }
+  25%, 75% { opacity: 1; }
+  100% { opacity: 0; }
+}
