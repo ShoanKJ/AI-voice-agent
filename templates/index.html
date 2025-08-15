@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Voice Agent - Day 3 & 4</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #000;
+      color: white;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle, #0ff, #f0f, #0f0, #ff0, #00f);
+      background-size: 300% 300%;
+      animation: pulseBG 10s ease infinite;
+      z-index: -1;
+      opacity: 0.15;
+      filter: blur(60px);
+    }
+
+    @keyframes pulseBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    .tabs a {
+      color: white;
+      margin: 0 20px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      padding: 40px;
+      flex-wrap: wrap;
+    }
+
+    .box {
+      background-color: rgba(30, 30, 30, 0.6);
+      padding: 30px;
+      border-radius: 12px;
+      width: 400px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+    }
+
+    .box h2 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .box input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+
+    .box button {
+      padding: 10px 16px;
+      margin: 5px 5px 10px 0;
+      font-size: 14px;
+      background-color: #ccc;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .box audio {
+      width: 100%;
+    }
+
+    .icon {
+      margin-right: 8px;
+    }
+
+    #status {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #0f0;
+    }
+  </style>
+</head>
+<body>
+  <div class="tabs"></div>
+
+  <div class="container">
+    <!-- Day 3 -->
+    <div class="box" id="day3">
+      <h2><span class="icon">🎤</span>Day 3: Text-to-Speech</h2>
+      <p>Type something and hear it back!</p>
+      <input type="text" id="textInput" placeholder="Type your message here..." />
+      <button onclick="generateAudio()">🎧 Generate Audio</button>
+      <audio id="audioPlayer" controls></audio>
+    </div>
+
+    
+    <div class="box" id="day4">
+      <h2><span class="icon">🧠</span>Day 4: Echo Bot</h2>
+      <p>Record your voice and hear it back!</p>
+      <button id="startBtn">Start Recording</button>
+      <button id="stopBtn">Stop Recording</button>
+      <audio id="recordedAudio" controls></audio>
+      <p id="status">Waiting to record...</p>
+    </div>
+  </div>
+
+  <script>
+    
+    function generateAudio() {
+      const text = document.getElementById('textInput').value;
+      const utterance = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(utterance);
+
+      utterance.onend = () => {
+        const audio = document.getElementById('audioPlayer');
+        audio.src = '';
+      };
+    }
+
+   
+    document.addEventListener("DOMContentLoaded", () => {
+      const startBtn = document.getElementById("startBtn");
+      const stopBtn = document.getElementById("stopBtn");
+      const statusMsg = document.getElementById("status");
+      const recordedAudio = document.getElementById("recordedAudio");
+      let mediaRecorder;
+      let audioChunks = [];
+
+      startBtn.onclick = async () => {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = event => {
+          audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          recordedAudio.src = audioUrl;
+          uploadAudio(audioBlob);
+        };
+
+        mediaRecorder.start();
+        statusMsg.textContent = "🎙️ Recording started...";
+      };
+
+      stopBtn.onclick = () => {
+        mediaRecorder.stop();
+        statusMsg.textContent = "🛑 Recording stopped. Uploading...";
+      };
+
+      function uploadAudio(blob) {
+        const formData = new FormData();
+        formData.append("file", blob, "recording.webm");
+
+        fetch("/upload-audio", {
+          method: "POST",
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          statusMsg.textContent = `✅ Uploaded: ${data.filename}, Type: ${data.content_type}, Size: ${data.size} bytes`;
+        })
+        .catch(error => {
+          console.error("Upload failed:", error);
+          statusMsg.textContent = "❌ Upload failed.";
+        });
+      }
+    });
+  </script>
+</body>
+</html>
